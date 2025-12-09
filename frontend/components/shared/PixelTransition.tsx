@@ -1,10 +1,10 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 
-const pixelVariants = {
+const pixelVariants: Variants = {
     initial: { scale: 1 },
-    animate: (i) => ({
+    animate: (i: number) => ({
         scale: 0,
         transition: {
             duration: 0.12,
@@ -14,7 +14,7 @@ const pixelVariants = {
     })
 }
 
-const SimplifiedGrid = ({ onTransitionComplete }) => {
+const SimplifiedGrid = ({ onTransitionComplete }: { onTransitionComplete?: () => void }) => {
     const [isClient, setIsClient] = useState(false);
 
     const BLOCK_COUNT = 200;  
@@ -36,7 +36,7 @@ const SimplifiedGrid = ({ onTransitionComplete }) => {
         }
     }, [onTransitionComplete, totalAnimationTime]);
 
-    const shuffle = (a) => {
+    const shuffle = (a: number[]) => {
         for (let i = a.length - 1; i > 0; i--) {
             let j = Math.floor(Math.random() * (i + 1));
             [a[i], a[j]] = [a[j], a[i]];
@@ -79,6 +79,6 @@ const SimplifiedGrid = ({ onTransitionComplete }) => {
     );
 };
 
-export default function PixelTransition({ onTransitionComplete }) {
+export default function PixelTransition({ onTransitionComplete }: { onTransitionComplete?: () => void }) {
     return <SimplifiedGrid onTransitionComplete={onTransitionComplete} />;
 }

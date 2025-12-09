@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import PixelTransition from "./PixelTransition";
 
-export default function RouteTransition({ children }) {
+export default function RouteTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [showTransition, setShowTransition] = useState(true);
   const [renderedChildren, setRenderedChildren] = useState(children);

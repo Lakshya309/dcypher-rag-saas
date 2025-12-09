@@ -2,7 +2,7 @@
 
 import React, { useRef, MouseEvent } from "react";
 import Link from "next/link";
-import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
+import { motion, useMotionValue, useTransform, useSpring, MotionValue } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
 
@@ -31,13 +31,13 @@ const InteractiveText = ({ text }: { text: string }) => {
       className="flex flex-wrap justify-center"
     >
       {letters.map((letter, i) => (
-        <Letter key={i} letter={letter === " " ? "\u00A0" : letter} mouseX={mouseX} />
+        <Letter key={i} letter={letter === " " ? " " : letter} mouseX={mouseX} />
       ))}
     </motion.div>
   );
 };
 
-const Letter = ({ letter, mouseX }: { letter: string; mouseX: ReturnType<typeof useMotionValue> }) => {
+const Letter = ({ letter, mouseX }: { letter: string; mouseX: MotionValue<number> }) => {
   const ref = useRef<HTMLSpanElement>(null);
 
   const distance = useTransform(mouseX, (val) => {

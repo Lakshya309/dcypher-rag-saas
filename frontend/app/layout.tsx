@@ -4,7 +4,11 @@ import Footer from "@/components/shared/Footer";
 import RouteTransition from "@/components/shared/RouteTransition";
 import SessionProvider from "@/context/ClientSessionProvider";
 
-export default function RootLayout({ children }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen bg-background font-sans antialiased">
