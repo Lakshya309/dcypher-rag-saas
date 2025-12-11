@@ -12,28 +12,30 @@ def get_db_connection():
     conn = psycopg2.connect(DATABASE_URL)
     register_vector(conn)
     return conn
+def delete_embeddings(session_id: str = None, before: str = None):
+    """
+    Deletes embeddings by session_id or before a specified timestamp.
+    - session_id: The session ID to delete.
+    - before: A timestamp string (e.g., '2023-01-01T00:00:00');
+              embeddings created before this time will be deleted.
+    """
+    if not session_id and not before:
+        print("Either session_id or before timestamp must be provided.")
+        return
 
-def create_db_and_tables():
+    conn = get_db_connection()
+    cursor = conn.cursor()
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
+        if session_id:
+            query = "DELETE FROM embeddings WHERE session_id = %s"
+            params = (session_id,)
+        elif before:
+            query = "DELETE FROM embeddings WHERE created_at < %s"
+            params = (before,)
 
-        # DO NOT enable pgvector here — Supabase free tier blocks it.
-        # Enable manually via Supabase dashboard.
-
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS embeddings (
-            id BIGSERIAL PRIMARY KEY,
-            session_id TEXT NOT NULL,
-            content TEXT NOT NULL,
-            embedding VECTOR(768) NOT NULL
-        )
-        """)
-
+        cursor.execute(query, params)
         conn.commit()
+        print(f"{cursor.rowcount} embeddings deleted.")
+    finally:
         cursor.close()
         conn.close()
-        print("Database initialized successfully.")
-
-    except Exception as e:
-        print(f"Database initialization failed: {e}")

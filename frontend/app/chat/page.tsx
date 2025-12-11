@@ -1,12 +1,14 @@
 "use client";
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, } from 'react';
 import ChatBubble from '@/components/shared/ChatBubble';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Send, RotateCcw } from 'lucide-react';
 import FileUploadCard from '@/components/shared/FileUploadCard';
 import { motion, AnimatePresence } from 'framer-motion';
+import { fetchWithSession } from '@/lib/api';
 import { useSession } from '@/context/ClientSessionProvider';
+
 
 type Message = {
   role: 'user' | 'assistant';
@@ -24,7 +26,7 @@ const ChatPage = () => {
   const [view, setView] = useState<View>('upload');
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const baseURL = process.env.NEXT_PUBLIC_API_URL;
-  const { sessionId, resetSession } = useSession();
+  const { resetSession } = useSession();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -34,7 +36,7 @@ const ChatPage = () => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputValue.trim() || !sessionId) return;
+    if (!inputValue.trim()) return;
 
     const userMessage: Message = { role: 'user', content: inputValue };
     setMessages(prev => [...prev, userMessage]);
@@ -45,9 +47,8 @@ const ChatPage = () => {
     try {
       const formData = new URLSearchParams();
       formData.append('query', currentQuery);
-      formData.append('session_id', sessionId);
 
-      const response = await fetch(`${baseURL}/api/chat`, {
+      const response = await fetchWithSession(`${baseURL}/api/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',

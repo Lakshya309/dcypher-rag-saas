@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import google.generativeai as genai
-from app.utils.db import get_db_connection
+from app.utils.db import get_db_connection, delete_embeddings
 from langchain_core.documents import Document
 from pgvector.psycopg2 import register_vector
 
@@ -35,6 +35,7 @@ def add_to_vectorstore(chunks, session_id: str):
 
             embedding_vector = embed(chunk.page_content)
             if embedding_vector:
+                # created_at is set by default in the database
                 cursor.execute(
                     "INSERT INTO embeddings (session_id, content, embedding) VALUES (%s, %s, %s)",
                     (session_id, chunk.page_content, np.array(embedding_vector))
@@ -75,16 +76,4 @@ def query_vectorstore(query: str, session_id: str, top_k: int = 4):
         cursor.close()
         conn.close()
 
-def delete_vectorstore(session_id: str):
-    """Deletes all embeddings for a given session_id."""
-    if not session_id:
-        return
-    
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("DELETE FROM embeddings WHERE session_id = %s", (session_id,))
-        conn.commit()
-    finally:
-        cursor.close()
-        conn.close()
+

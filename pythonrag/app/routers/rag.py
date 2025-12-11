@@ -1,11 +1,31 @@
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Query
 from app.services.rag_service import (
     process_pdf,
     answer_query,
-    reset_session
+    reset_session,
+    clear_embeddings,
 )
 
 router = APIRouter()
+
+@router.post("/delete-embeddings")
+async def delete_embeddings_endpoint(
+    session_id: str = Query(None),
+    before: str = Query(None)
+):
+    """
+    Deletes embeddings. Use a `session_id` to clear a session 
+    or a `before` timestamp to clear expired embeddings.
+    """
+    if not session_id and not before:
+        raise HTTPException(
+            status_code=400, 
+            detail="Either session_id or before timestamp must be provided."
+        )
+    
+    await clear_embeddings(session_id=session_id, before=before)
+    return {"message": "Embeddings deleted successfully."}
+
 
 @router.post("/upload")
 async def upload_pdf(

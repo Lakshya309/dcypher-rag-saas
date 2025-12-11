@@ -2,7 +2,7 @@ import os
 from fastapi import HTTPException
 from app.utils.pdf_loader import load_pdf
 from app.utils.splitter import split_docs
-from app.utils.vector_store import add_to_vectorstore, query_vectorstore, delete_vectorstore
+from app.utils.vector_store import add_to_vectorstore, query_vectorstore
 from app.utils.llm import get_llm
 
 async def process_pdf(file, session_id: str):
@@ -58,8 +58,18 @@ async def answer_query(query: str, session_id: str):
     answer = llm.invoke(prompt)
     return answer, [d.metadata for d in retriever]
 
+from app.utils.db import delete_embeddings
+async def clear_embeddings(session_id: str = None, before: str = None):
+    """Deletes embeddings by session_id or before a specified timestamp."""
+    if not session_id and not before:
+        raise HTTPException(
+            status_code=400,
+            detail="Either session_id or before must be provided"
+        )
+    delete_embeddings(session_id=session_id, before=before)
+
 async def reset_session(session_id: str):
     if not session_id:
         raise HTTPException(status_code=400, detail="Session ID is required.")
-    delete_vectorstore(session_id)
+    await clear_embeddings(session_id=session_id)
     return {"message": f"Session {session_id} has been reset."}

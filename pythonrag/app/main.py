@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import health, rag
-from app.utils.db import create_db_and_tables
+# from app.utils.db import create_db_and_tables
 
 # Create the database and tables on startup
-create_db_and_tables()
+# create_db_and_tables()
 
 app = FastAPI()
 
