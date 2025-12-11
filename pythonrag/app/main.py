@@ -1,6 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import health, rag
+from app.utils.db import create_db_and_tables
+
+# Create the database and tables on startup
+create_db_and_tables()
 
 app = FastAPI()
 
@@ -13,5 +17,5 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all header
 )
 
-# app.include_router(health.router, prefix="/health", tags=["health"])
+app.include_router(health.router, prefix="/health", tags=["health"])
 app.include_router(rag.router, prefix="/api", tags=["rag"])

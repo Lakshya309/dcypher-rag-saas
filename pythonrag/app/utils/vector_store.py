@@ -1,40 +1,90 @@
 import os
-import shutil
-from langchain_community.vectorstores import FAISS
-from langchain_huggingface import HuggingFaceEmbeddings
+import numpy as np
+import google.generativeai as genai
+from app.utils.db import get_db_connection
+from langchain_core.documents import Document
+from pgvector.psycopg2 import register_vector
 
-emb = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+# Initialize Gemini
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-def get_vector_dir(session_id: str):
-    return f"data/vectorstore/{session_id}"
-
-def get_vectorstore(session_id: str):
-    vector_dir = get_vector_dir(session_id)
-    if os.path.exists(vector_dir):
-        return FAISS.load_local(vector_dir, emb, allow_dangerous_deserialization=True)
-    return None
+def embed(text):
+    """Generates an embedding for the given text."""
+    try:
+        result = genai.embed_content(
+            model="models/text-embedding-004",
+            content=text,
+            task_type="retrieval_document"
+        )
+        return result["embedding"]
+    except Exception as e:
+        print(f"Error embedding text: {e}")
+        return None
 
 def add_to_vectorstore(chunks, session_id: str):
-    vector_dir = get_vector_dir(session_id)
-    if os.path.exists(vector_dir):
-        vs = get_vectorstore(session_id)
-        if vs:
-            vs.add_documents(chunks)
-        else: # Should not happen if directory exists, but as a fallback
-            vs = FAISS.from_documents(chunks, emb)
-    else:
-        os.makedirs(vector_dir)
-        vs = FAISS.from_documents(chunks, emb)
-    
-    vs.save_local(vector_dir)
+    """Adds document chunks to the vector store."""
+    if not session_id:
+        return
 
-def query_vectorstore(query: str, session_id: str):
-    vs = get_vectorstore(session_id)
-    if vs is None:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        for chunk in chunks:
+            if not hasattr(chunk, 'page_content'):
+                continue
+
+            embedding_vector = embed(chunk.page_content)
+            if embedding_vector:
+                cursor.execute(
+                    "INSERT INTO embeddings (session_id, content, embedding) VALUES (%s, %s, %s)",
+                    (session_id, chunk.page_content, np.array(embedding_vector))
+                )
+        conn.commit()
+    finally:
+        cursor.close()
+        conn.close()
+
+def query_vectorstore(query: str, session_id: str, top_k: int = 4):
+    """Queries the vector store for similar documents."""
+    if not session_id:
         return []
-    return vs.similarity_search(query, k=4)
+
+    query_embedding = embed(query)
+    if not query_embedding:
+        return []
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        # Use <=> for cosine distance
+        cursor.execute(
+            """
+            SELECT content FROM embeddings 
+            WHERE session_id = %s 
+            ORDER BY embedding <=> %s 
+            LIMIT %s
+            """,
+            (session_id, np.array(query_embedding), top_k)
+        )
+        results = cursor.fetchall()
+        
+        # Convert results to LangChain Document objects
+        documents = [Document(page_content=row[0], metadata={}) for row in results]
+        return documents
+    finally:
+        cursor.close()
+        conn.close()
 
 def delete_vectorstore(session_id: str):
-    vector_dir = get_vector_dir(session_id)
-    if os.path.exists(vector_dir):
-        shutil.rmtree(vector_dir)
+    """Deletes all embeddings for a given session_id."""
+    if not session_id:
+        return
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM embeddings WHERE session_id = %s", (session_id,))
+        conn.commit()
+    finally:
+        cursor.close()
+        conn.close()

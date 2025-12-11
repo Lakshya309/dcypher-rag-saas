@@ -44,7 +44,7 @@ async def answer_query(query: str, session_id: str):
     context = "\n\n".join([d.page_content for d in retriever])
 
     prompt = f"""
-    You are a helpful AI assistant for the RAG an open source PDF-GPT. You will answer user questions based on the context provided.
+    You are a helpful AI assistant for the RAG an open source PDF-GPT dont use formatiing symbols give plain text. You will answer user questions based on the context provided.
 
     CONTEXT:
     {context}
