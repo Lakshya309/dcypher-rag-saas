@@ -1,6 +1,6 @@
 // frontend/components/shared/PixelLoader.tsx
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 
 interface PixelLoaderProps {
   isLoading: boolean;
@@ -8,7 +8,7 @@ interface PixelLoaderProps {
 }
 
 const PixelLoader: React.FC<PixelLoaderProps> = ({ isLoading, text = "LOADING..." }) => {
-  const containerVariants = {
+  const containerVariants : Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -26,7 +26,7 @@ const PixelLoader: React.FC<PixelLoaderProps> = ({ isLoading, text = "LOADING...
     },
   };
 
-  const pixelVariants = {
+  const pixelVariants: Variants = {
     hidden: { opacity: 0, scale: 0 },
     visible: (i: number) => ({
       opacity: [0, 1, 0.5, 0],
