@@ -14,7 +14,7 @@ frontend/yarn-debug.log*
 frontend/yarn-error.log*
 frontend/package-lock.json
 frontend/yarn.lock
-
+.env
 # ------------------------
 # Python / FastAPI backend (python-rag)
 # ------------------------
