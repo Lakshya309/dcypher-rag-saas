@@ -13,7 +13,7 @@ def embed(text):
     """Generates an embedding for the given text."""
     try:
         result = client.models.embed_content(
-            model="text-embedding-004",
+            model="gemini-embedding-001",
             contents=text,
             config=types.EmbedContentConfig(task_type="RETRIEVAL_DOCUMENT")
         )
