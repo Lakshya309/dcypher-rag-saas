@@ -10,7 +10,7 @@ langchain
 langchain-text-splitters
 langchain-community
 langchain-google-genai
-google-generativeai
+google-genai
 
 psycopg2-binary
 pgvector

@@ -1,22 +1,23 @@
 import os
 import numpy as np
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from app.utils.db import get_db_connection, delete_embeddings
 from langchain_core.documents import Document
 from pgvector.psycopg2 import register_vector
 
 # Initialize Gemini
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 def embed(text):
     """Generates an embedding for the given text."""
     try:
-        result = genai.embed_content(
-            model="gemini-embedding-001",
-            content=text,
-            task_type="retrieval_document"
+        result = client.models.embed_content(
+            model="text-embedding-004",
+            contents=text,
+            config=types.EmbedContentConfig(task_type="RETRIEVAL_DOCUMENT")
         )
-        return result["embedding"]
+        return result.embeddings[0].values
     except Exception as e:
         print(f"Error embedding text: {e}")
         return None
