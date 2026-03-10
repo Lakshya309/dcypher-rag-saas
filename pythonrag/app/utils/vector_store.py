@@ -12,7 +12,7 @@ def embed(text):
     """Generates an embedding for the given text."""
     try:
         result = genai.embed_content(
-            model="models/text-embedding-004",
+            model="gemini-embedding-001",
             content=text,
             task_type="retrieval_document"
         )
